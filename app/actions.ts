@@ -6,7 +6,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export const signUpAction = async (formData: FormData) => {
-  const email = formData.get("email")?.toString();
+  const emailUnformatted = formData.get("email")?.toString();
+  const email = emailUnformatted?.trim();
   const password = formData.get("password")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
@@ -41,7 +42,7 @@ export const signUpAction = async (formData: FormData) => {
 
 export const signInAction = async (formData: FormData) => {
   const emailUnformatted = formData.get("email") as string;
-  const email = emailUnformatted.trim();
+  const email = emailUnformatted?.trim();
   const password = formData.get("password") as string;
   const supabase = await createClient();
 
@@ -58,7 +59,8 @@ export const signInAction = async (formData: FormData) => {
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
-  const email = formData.get("email")?.toString();
+  const emailUnformatted = formData.get("email")?.toString();
+  const email = emailUnformatted?.trim();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
   const callbackUrl = formData.get("callbackUrl")?.toString();
