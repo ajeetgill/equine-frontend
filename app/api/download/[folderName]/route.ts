@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { folderName: string } }
+  { params }: { params: Promise<{ folderName: string }> }
 ) {
   try {
     // Verify user authentication
