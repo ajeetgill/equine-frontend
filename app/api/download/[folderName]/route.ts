@@ -28,7 +28,6 @@ export async function GET(
 
     // List all files in the folder
     const files = await listFilesInFolder(folderName);
-    const mediaFiles = await listFilesInFolder(`${folderName}/media`);
 
     if (!files.length) {
       return NextResponse.json(
@@ -73,21 +72,66 @@ export async function GET(
       });
     };
 
+    // Recursive function to process folders and files
+    const processFolder = async (path: string, zipFolder?: JSZip) => {
+      const items = await listFilesInFolder(path);
+      const downloadPromises: Promise<boolean>[] = [];
+
+      for (const item of items) {
+        if (item.metadata?.mimetype) {
+          // This is a file
+          const filePath = `${path}/${item.name}`;
+          const fileData = await downloadFile(filePath);
+
+          if (fileData) {
+            try {
+              // For Blob objects (browser environment)
+              const arrayBuffer = await (fileData as any).arrayBuffer();
+              if (zipFolder) {
+                zipFolder.file(item.name, arrayBuffer);
+              } else {
+                zip.file(item.name, arrayBuffer);
+              }
+            } catch (error) {
+              // If arrayBuffer() method is not available, use as is
+              if (zipFolder) {
+                zipFolder.file(item.name, fileData);
+              } else {
+                zip.file(item.name, fileData);
+              }
+            }
+            downloadPromises.push(Promise.resolve(true));
+          }
+        } else {
+          // This is a folder
+          const subFolderPath = `${path}/${item.name}`;
+          const subFolderName = item.name;
+          const subZipFolder = zipFolder
+            ? zipFolder.folder(subFolderName)
+            : zip.folder(subFolderName);
+
+          if (subZipFolder) {
+            // Process the subfolder recursively
+            const subPromises = await processFolder(
+              subFolderPath,
+              subZipFolder
+            );
+            downloadPromises.push(...subPromises);
+          }
+        }
+      }
+
+      return downloadPromises;
+    };
+
     // Download main files
     const downloadPromises = await downloadAndAddToZip(files, folderName);
 
-    // Download media files into a subfolder
-    const mediaFolder = zip.folder("media");
-    const downloadMediaPromises = mediaFolder
-      ? await downloadAndAddToZip(
-          mediaFiles,
-          `${folderName}/media`,
-          mediaFolder
-        )
-      : [];
+    // Process all subfolders recursively
+    const allPromises = await processFolder(folderName, zip);
 
     // Wait for all files to be downloaded and added to the zip
-    await Promise.all([...downloadPromises, ...downloadMediaPromises]);
+    await Promise.all([...downloadPromises, ...allPromises]);
 
     // Generate the zip file
     const zipContent = await zip.generateAsync({ type: "uint8array" });
