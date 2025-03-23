@@ -1,3 +1,5 @@
+"use server";
+
 import { createClient } from "@/utils/supabase/server";
 const BUCKET = process.env.ASSESSMENT_BUCKET_NAME!;
 
@@ -63,12 +65,39 @@ export const downloadAssessmentURL = async (folderName: string) => {
 };
 
 // Download a folder by redirecting to the API
-export const downloadFolder = (folderName: string) => {
-  // Create the URL to the API route
-  const url = `/api/download/${folderName}`;
+// export const downloadFolder = (folderName: string) => {
+//   // Create the URL to the API route
+//   const url = `/api/download/${folderName}`;
 
-  // Open in a new tab to start the download
-  window.open(url, "_blank");
+//   // Open in a new tab to start the download
+//   window.open(url, "_blank");
+
+//   return true;
+// };
+
+export async function deleteAssessmentFolder(folderName: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.storage.from(BUCKET).remove([folderName]);
+
+  if (error) {
+    console.error("Error deleting folder:", error);
+    return { success: false };
+  }
+
+  return { success: true };
+}
+
+// Add this function to your actions/supabase.ts file
+export async function deleteFile(filePath: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .remove([filePath]);
+
+  if (error) {
+    console.error(`Error deleting file ${filePath}:`, error);
+    return false;
+  }
 
   return true;
-};
+}

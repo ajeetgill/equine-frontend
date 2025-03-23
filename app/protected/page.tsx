@@ -26,8 +26,12 @@ export default async function ProtectedPage() {
         {bucket && `${bucket[0].toUpperCase()}${bucket.substring(1)}`}
       </h2>
 
-      {assessments &&
-        assessments.map((i) => <AssessmentFolder key={i.name} item={i} />)}
+      <div className={"flex flex-wrap gap-3 justify-between"}>
+        {assessments &&
+          assessments
+            .reverse()
+            .map((i) => <AssessmentFolder key={i.name} item={i} />)}
+      </div>
     </div>
   );
 }
