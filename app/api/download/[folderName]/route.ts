@@ -88,9 +88,12 @@ export async function GET(
               // For Blob objects (browser environment)
               const arrayBuffer = await (fileData as any).arrayBuffer();
               if (zipFolder) {
-                zipFolder.file(item.name, arrayBuffer);
+                zipFolder.file(
+                  item.name.replace(".json", ".docx"),
+                  arrayBuffer
+                );
               } else {
-                zip.file(item.name, arrayBuffer);
+                zip.file(item.name.replace(".json", ".docx"), arrayBuffer);
               }
             } catch (error) {
               // If arrayBuffer() method is not available, use as is

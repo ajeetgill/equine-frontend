@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { generateDoc } from "./docGeneration";
 const BUCKET = process.env.ASSESSMENT_BUCKET_NAME!;
 
 export const getBucketName = async () => {
@@ -48,7 +49,12 @@ export const downloadFile = async (filePath: string) => {
     console.error("Error downloading file:", error);
     return null;
   }
-  console.log("DONWLOAD FILE, filetype: ", data);
+  // console.log("DONWLOAD FILE, filetype: ", data.type);
+  if (data.type.includes("json")) {
+    // so if the type of file blob is JSON, we use it to generate a file.docx as a blob
+    const jsonBlobText = await data.text();
+    return generateDoc(jsonBlobText);
+  }
 
   return data;
 };
