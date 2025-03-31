@@ -48,7 +48,6 @@ export const AssessmentFolder = ({ item }: { item: FileObject }) => {
       document.body.removeChild(a);
 
       // Dismiss the preparing toast
-      preparingToast.dismiss();
 
       // Show success toast
       toast({
@@ -56,6 +55,7 @@ export const AssessmentFolder = ({ item }: { item: FileObject }) => {
         description: `Successfully downloaded ${item.name}`,
         variant: "success",
       });
+      preparingToast.dismiss();
     } catch (error) {
       console.error("Download failed:", error);
 
