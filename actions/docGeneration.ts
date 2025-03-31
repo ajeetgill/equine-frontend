@@ -73,22 +73,25 @@ function createHorseTable(horseData: any) {
   horses.forEach((horse: any) => {
     // Main data row
     let bcsScoreColor = "ffffff";
-    if (horse.bcsScore < 4) {
+    if (horse.isHorse && horse.bcsScore < 4) {
       bcsScoreColor = "ffff00";
-    } else if (horse.bcsScore > 6) {
+    } else if (horse.isHorse && horse.bcsScore > 6) {
       bcsScoreColor = "FFA500";
     }
+    // TODO: Not sure about shading limits for donkey
 
     rows.push(
       new TableRow({
         children: [
-          createCell(horse.name, { rowSpan: 2 }),
+          createCell(`${horse.isHorse ? "" : "(DONKEY) "}${horse.name}`, {
+            rowSpan: 2,
+          }),
           createCell(horse.breed),
           createCell(`${horse.age}`),
           createCell(getSexFull(horse.sex)),
           createCell(horse.color),
           createCell(`${horse.timeOnFarm} ${horse.timeUnit}`),
-          createCell(`${horse.bcsScore}/9`, {
+          createCell(`${horse.bcsScore}/${horse.isHorse ? "9" : "5"}`, {
             shading: {
               fill: bcsScoreColor,
             },
