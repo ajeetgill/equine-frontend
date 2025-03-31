@@ -6,17 +6,17 @@
 import { FileText } from "lucide-react";
 import { Button } from "./button";
 import { useState } from "react";
-// import { generateDoc } from "@/actions/docGeneration";
+// import { generateHorseDoc } from "@/actions/docGeneration";
 import { saveAs } from "file-saver";
 
-export const GenerateDocBtn = () => {
+export const generateHorseDocBtn = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGen = async () => {
     try {
       setIsLoading(true);
 
-      //   const result: Blob = await generateDoc();
+      //   const result: Blob = await generateHorseDoc();
       const result = "s";
 
       if (result) {

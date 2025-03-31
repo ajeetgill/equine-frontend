@@ -11,6 +11,7 @@ import {
   HeightRule,
 } from "docx";
 import { Packer } from "docx";
+import generateDocument from "./docxReport";
 
 const bor = {
   top: {
@@ -45,7 +46,8 @@ function getSexFull(sex: string) {
 
 // Function to create the horse table
 function createHorseTable(horseData: any) {
-  const horses = JSON.parse(horseData);
+  const horses =
+    typeof horseData === "string" ? JSON.parse(horseData) : horseData;
   const rows = [];
 
   // Header row
@@ -171,7 +173,7 @@ function createCell(text: string, options: CellOptions = {}) {
   });
 }
 
-export async function generateDoc(horseData: any) {
+export async function generateHorseDoc(horseData: any) {
   // Create a new document
   const doc = new Document({
     sections: [
@@ -189,6 +191,16 @@ export async function generateDoc(horseData: any) {
       },
     ],
   });
+
+  const docBlob: Blob = await Packer.toBlob(doc);
+  console.log("Document created successfully");
+
+  return docBlob;
+}
+
+export async function generateReportDoc(data: any) {
+  // Use the imported generateDocument function directly with the provided data
+  const doc = generateDocument(data);
 
   const docBlob: Blob = await Packer.toBlob(doc);
   console.log("Document created successfully");
