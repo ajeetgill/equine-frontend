@@ -36,6 +36,10 @@ const bor = {
   },
 };
 
+// const lowScoreColor = "FFA500"; // orange - looks better but we shall see
+const lowScoreColor = "f87171"; // lightish-red
+const highScoreColor = "ffff00"; // yellow
+
 // Function to convert sex abbreviation
 function getSexFull(sex: string) {
   if (sex === "Stallion") return "S";
@@ -72,11 +76,20 @@ function createHorseTable(horseData: any) {
   // Data rows for each horse
   horses.forEach((horse: any) => {
     // Main data row
-    let bcsScoreColor = "ffffff";
-    if (horse.isHorse && horse.bcsScore < 4) {
-      bcsScoreColor = "ffff00";
-    } else if (horse.isHorse && horse.bcsScore > 6) {
-      bcsScoreColor = "FFA500";
+    let bcsScoreColor = "ffffff"; // white
+    if (horse.isHorse) {
+      if (horse.bcsScore < 4) {
+        bcsScoreColor = lowScoreColor;
+      } else if (horse.bcsScore > 6) {
+        bcsScoreColor = highScoreColor;
+      }
+    } else if (!horse.isHorse) {
+      // i.e. it is a donkey
+      if (horse.bcsScore < 3) {
+        bcsScoreColor = lowScoreColor;
+      } else if (horse.bcsScore > 3) {
+        bcsScoreColor = highScoreColor;
+      }
     }
     // TODO: Not sure about shading limits for donkey
 

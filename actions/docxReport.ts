@@ -25,6 +25,8 @@ interface ReportData {
     id: string;
     vetName: string;
     visitDate: string;
+    averageHorseBCS: string;
+    averageDonkeyBCS: string;
   };
   nonCompliantFindings: {
     sections: Section[];
@@ -526,37 +528,57 @@ function generateDocument(reportData: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: "Overall, the herd was in poor body condition with BCS ranging from ",
+          text: "Overall, the herd was in ",
           size: 22,
         }),
         new TextRun({
-          text: "<<lowest-BCS-Score-in-herd>>",
+          text: "(poor/healthy/other?)",
+          size: 22,
           color: "0000ff",
           bold: true,
         }),
         new TextRun({
-          text: "/9 to ",
-        }),
-        new TextRun({
-          text: "<<highest-BCS-Score-herd/9>>",
-          color: "0000ff",
-          bold: true,
-        }),
-        new TextRun({
-          text: ". A mean herd BCS of ",
-        }),
-        new TextRun({
-          text: "<< to be calculated >>",
-          color: "0000ff",
-          bold: true,
-        }),
-        new TextRun({
-          text: "/9.",
+          text: " body condition. ",
+          size: 22,
         }),
       ],
-      spacing: { after: 150 },
+      spacing: { after: 100 },
     })
   );
+  if (data.metadata.averageDonkeyBCS) {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "The mean BCS of the horses, was ",
+          }),
+          new TextRun({
+            text: `${data.metadata.averageHorseBCS}/9.`,
+            color: "0000ff",
+            bold: true,
+          }),
+        ],
+        spacing: { after: 100 },
+      })
+    );
+  }
+  if (data.metadata.averageDonkeyBCS) {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "The mean BCS of the donkey, was ",
+          }),
+          new TextRun({
+            text: `${data.metadata.averageDonkeyBCS}/5.`,
+            color: "0000ff",
+            bold: true,
+          }),
+        ],
+        spacing: { after: 150 },
+      })
+    );
+  }
 
   paragraphs.push(
     new Paragraph({
