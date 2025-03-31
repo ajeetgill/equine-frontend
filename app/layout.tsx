@@ -6,6 +6,7 @@ import logo from "@/assets/logo-small.png";
 import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
+import { Toaster } from "@/components/ui/toaster";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -61,6 +62,7 @@ export default function RootLayout({
               {children}
             </div>
           </main>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

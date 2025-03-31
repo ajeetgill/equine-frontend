@@ -3,6 +3,7 @@
 import { Trash2 } from "lucide-react";
 import { Button } from "./button";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export const DeleteButton = ({
   folderToDelete,
@@ -12,6 +13,7 @@ export const DeleteButton = ({
   onSuccess?: () => void;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleDelete = async () => {
     // Confirm deletion with the user
@@ -24,6 +26,20 @@ export const DeleteButton = ({
     try {
       setIsLoading(true);
 
+      // Show starting deletion toast
+      const startingToast = toast({
+        title: "Starting deletion",
+        description: `Preparing to delete ${folderToDelete}`,
+        className: "border-blue-500",
+      });
+
+      // Show preparing deletion toast
+      const preparingToast = toast({
+        title: "Preparing deletion",
+        description: "Please wait while we process your request...",
+        className: "border-yellow-500",
+      });
+
       // Make a DELETE request to our API route
       const response = await fetch(`/api/folder/${folderToDelete}`, {
         method: "DELETE",
@@ -32,12 +48,15 @@ export const DeleteButton = ({
       const result = await response.json();
 
       if (result.success) {
-        // Show success message
-        //    toast?.({
-        //      title: "Folder deleted",
-        //      description: `Successfully deleted ${result.count} items from ${folderToDelete}`,
-        //      variant: "default",
-        //    });
+        // Dismiss the preparing toast
+        preparingToast.dismiss();
+
+        // Show success toast
+        toast({
+          title: "Deletion complete",
+          description: `Successfully deleted ${result.count} items from ${folderToDelete}`,
+          className: "border-green-500",
+        });
 
         // Call the success callback or reload the page
         if (onSuccess) {
@@ -51,12 +70,13 @@ export const DeleteButton = ({
     } catch (error) {
       console.error("Failed to delete folder:", error);
 
-      // Show error message
-      //  toast?.({
-      //    title: "Error",
-      //    description: "Failed to delete the folder. Please try again.",
-      //    variant: "destructive",
-      //  });
+      // Show error toast
+      toast({
+        title: "Deletion failed",
+        description: "Failed to delete the folder. Please try again.",
+        variant: "destructive",
+        className: "border-red-500",
+      });
     } finally {
       setIsLoading(false);
     }
