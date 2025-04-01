@@ -36,8 +36,8 @@ const bor = {
   },
 };
 
-// const lowScoreColor = "FFA500"; // orange - looks better but we shall see
-const lowScoreColor = "f87171"; // lightish-red
+const lowScoreColor = "FFA500"; // orange - looks better but we shall see
+// const lowScoreColor = "f87171"; // lightish-red
 const highScoreColor = "ffff00"; // yellow
 
 // Function to convert sex abbreviation
