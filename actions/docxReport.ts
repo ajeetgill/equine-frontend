@@ -341,7 +341,7 @@ function generateDocument(reportData: any) {
         if (req.findings) {
           allFindings.push(
             new TextRun({
-              text: `${req.findings}\n`,
+              text: `${req.findings}`,
               color: "0000ff", // Blue color for findings
               size: 22,
             })
@@ -355,19 +355,24 @@ function generateDocument(reportData: any) {
       new Paragraph({
         children: [
           new TextRun({
-            text: "All Findings Combined:",
+            text: "Findings Summary:",
             bold: true,
             size: 22,
           }),
         ],
       })
     );
-    paragraphs.push(
-      new Paragraph({
-        children: allFindings, // Add all findings aggregated here
-        spacing: { after: 200 },
-      })
-    );
+
+    // Create a separate paragraph for each finding instead of combining them
+    allFindings.forEach((finding) => {
+      paragraphs.push(
+        new Paragraph({
+          bullet: { level: 0 },
+          children: [finding],
+          spacing: { after: 100 },
+        })
+      );
+    });
 
     paragraphs.push(
       new Paragraph({
@@ -504,6 +509,7 @@ function generateDocument(reportData: any) {
           new TextRun({
             text: rec,
             size: 22,
+            color: "0000ff",
           }),
         ],
         spacing: { after: 150 },
@@ -515,8 +521,13 @@ function generateDocument(reportData: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: "RECOMMENDED ACTION:",
+          text: "Recommendations and timelines: ",
           bold: true,
+          size: 24,
+          allCaps: true,
+        }),
+        new TextRun({
+          text: "(immediate, days, weeks, months)",
           size: 24,
         }),
       ],
@@ -530,6 +541,7 @@ function generateDocument(reportData: any) {
         new TextRun({
           text: "Overall, the herd was in ",
           size: 22,
+          color: "0000ff",
         }),
         new TextRun({
           text: "(poor/healthy/other?)",
@@ -540,6 +552,7 @@ function generateDocument(reportData: any) {
         new TextRun({
           text: " body condition. ",
           size: 22,
+          color: "0000ff",
         }),
       ],
       spacing: { after: 100 },
@@ -551,6 +564,7 @@ function generateDocument(reportData: any) {
         children: [
           new TextRun({
             text: "The mean BCS of the horses, was ",
+            color: "0000ff",
           }),
           new TextRun({
             text: `${data.metadata.averageHorseBCS}/9.`,
@@ -568,6 +582,7 @@ function generateDocument(reportData: any) {
         children: [
           new TextRun({
             text: "The mean BCS of the donkey, was ",
+            color: "0000ff",
           }),
           new TextRun({
             text: `${data.metadata.averageDonkeyBCS}/5.`,
@@ -586,6 +601,7 @@ function generateDocument(reportData: any) {
         new TextRun({
           text: "Due to the findings of the investigation and assessment of the animals, it is my recommendation ",
           size: 22,
+          color: "0000ff",
         }),
         new TextRun({
           text: "...... <<Enter you recommendation here OR delete this block if NO Recommendation>>.",
