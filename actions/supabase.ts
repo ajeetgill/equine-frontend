@@ -49,8 +49,6 @@ export const downloadFile = async (filePath: string) => {
     console.error("Error downloading file:", error);
     return null;
   }
-  // filePath.includes("json") && console.log("DONWLOAD FILE, filepath: ", filePath);
-  // console.log("DONWLOAD FILE, filetype: ", data);
   if (data.type.includes("json")) {
     // so if the type of file blob is JSON, we use it to generate a file.docx as a blob
     const jsonBlobText = await data.text();
@@ -69,17 +67,6 @@ export const downloadAssessmentURL = async (folderName: string) => {
   if (error) return { url: null, success: false };
   else return { url: data, success: true };
 };
-
-// Download a folder by redirecting to the API
-// export const downloadFolder = (folderName: string) => {
-//   // Create the URL to the API route
-//   const url = `/api/download/${folderName}`;
-
-//   // Open in a new tab to start the download
-//   window.open(url, "_blank");
-
-//   return true;
-// };
 
 export async function deleteAssessmentFolder(folderName: string) {
   const supabase = await createClient();
