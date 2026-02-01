@@ -1,48 +1,19 @@
-import { forgotPasswordAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
-import { SmtpMessage } from "../smtp-message";
-import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
 
-export default async function ForgotPassword(props: {
-  searchParams: Promise<Message>;
-}) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return redirect("/protected");
-  }
-
-  const searchParams = await props.searchParams;
+export default function ForgotPasswordPage() {
   return (
-    <>
-      <form className="flex-1 flex flex-col w-full gap-2 text-foreground [&>input]:mb-6 min-w-64 max-w-64 mx-auto">
-        <div>
-          <h1 className="text-2xl font-medium">Reset Password</h1>
-          <p className="text-sm text-secondary-foreground">
-            Already have an account?{" "}
-            <Link className="text-primary underline" href="/sign-in">
-              Sign in
-            </Link>
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-          <Label htmlFor="email">Email</Label>
-          <Input name="email" placeholder="you@example.com" required />
-          <SubmitButton formAction={forgotPasswordAction}>
-            Reset Password
-          </SubmitButton>
-          <FormMessage message={searchParams} />
-        </div>
-      </form>
-      <SmtpMessage />
-    </>
+    <div className="flex flex-col min-h-[60vh] items-center justify-center gap-4">
+      <div className="text-center mb-4">
+        <h1 className="text-2xl font-medium">Reset Password</h1>
+        <p className="text-sm text-secondary-foreground mt-2">
+          Use the sign-in form below and click &quot;Forgot password?&quot; to reset your password.
+        </p>
+        <Link className="text-primary underline text-sm" href="/sign-in">
+          Back to Sign in
+        </Link>
+      </div>
+      <SignIn routing="hash" />
+    </div>
   );
 }

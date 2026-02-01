@@ -1,5 +1,6 @@
 import HeaderAuth from "@/components/header-auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Providers } from "@/components/providers";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import logo from "@/assets/logo-small.png";
@@ -32,38 +33,40 @@ export default function RootLayout({
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col gap-20 items-center">
-              <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-                <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-                  <Link
-                    href={"/"}
-                    className="flex items-center text-lg font-black"
-                  >
-                    <Image
-                      src={logo}
-                      className="w-auto max-w-[35px]"
-                      alt="Logo for Horse Assessment Report Downloading WebApp"
-                    />
-                    C.O.P
-                  </Link>
-                  <div className="flex">
-                    <HeaderAuth />
-                    <ThemeSwitcher />
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <main className="min-h-screen flex flex-col items-center">
+              <div className="flex-1 w-full flex flex-col gap-20 items-center">
+                <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
+                  <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
+                    <Link
+                      href={"/"}
+                      className="flex items-center text-lg font-black"
+                    >
+                      <Image
+                        src={logo}
+                        className="w-auto max-w-[35px]"
+                        alt="Logo for Horse Assessment Report Downloading WebApp"
+                      />
+                      C.O.P
+                    </Link>
+                    <div className="flex">
+                      <HeaderAuth />
+                      <ThemeSwitcher />
+                    </div>
                   </div>
-                </div>
-              </nav>
-              {children}
-            </div>
-          </main>
-          <Toaster />
-        </ThemeProvider>
+                </nav>
+                {children}
+              </div>
+            </main>
+            <Toaster />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

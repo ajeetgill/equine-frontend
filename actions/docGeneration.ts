@@ -1,4 +1,3 @@
-"use server";
 import {
   Document,
   Paragraph,
@@ -133,6 +132,7 @@ function createHorseTable(horseData: any) {
       size: 100,
       type: WidthType.PERCENTAGE,
     },
+    columnWidths: [2000, 1800, 700, 600, 1200, 1800, 800],
     rows,
   });
 }
