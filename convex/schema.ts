@@ -11,6 +11,7 @@ export default defineSchema({
     isComplete: v.boolean(),
     sideNotes: v.optional(v.string()),
     syncedAt: v.number(), // When synced to Convex
+    uploadedBy: v.optional(v.string()), // Clerk user ID of the uploader
   }).index("by_external_id", ["externalId"]),
 
   horses: defineTable({

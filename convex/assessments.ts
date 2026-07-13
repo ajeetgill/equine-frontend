@@ -2,6 +2,16 @@ import { mutation, query, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 
+// Writes require a signed-in Clerk user. Reads and (on iOS) local
+// assessment creation stay auth-free — login is only needed to upload.
+export async function requireUser(ctx: MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Sign in required to upload. Please sign in and try again.");
+  }
+  return identity;
+}
+
 // Type definitions for parsed JSON data
 interface AssessmentData {
   externalId: string;
@@ -99,6 +109,8 @@ export const syncAssessment = mutation({
     sectionsJson: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await requireUser(ctx);
+
     // Parse JSON strings
     const assessment: AssessmentData = JSON.parse(args.assessmentJson);
     const horses: HorseData[] = JSON.parse(args.horsesJson);
@@ -123,6 +135,7 @@ export const syncAssessment = mutation({
         isComplete: assessment.isComplete,
         sideNotes: assessment.sideNotes || "",
         syncedAt: Date.now(),
+        uploadedBy: identity.subject,
       });
       assessmentId = existing._id;
     } else {
@@ -134,6 +147,7 @@ export const syncAssessment = mutation({
         isComplete: assessment.isComplete,
         sideNotes: assessment.sideNotes || "",
         syncedAt: Date.now(),
+        uploadedBy: identity.subject,
       });
     }
 
@@ -311,6 +325,8 @@ export const getAssessmentMedia = query({
 export const remove = mutation({
   args: { id: v.id("assessments") },
   handler: async (ctx, args) => {
+    await requireUser(ctx);
+
     // Delete in reverse order of dependencies
     const sections = await ctx.db
       .query("sections")

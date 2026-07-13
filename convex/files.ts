@@ -1,10 +1,12 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireUser } from "./assessments";
 
 // Generate upload URL for client
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
+    await requireUser(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -20,6 +22,8 @@ export const saveFile = mutation({
     creationDate: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireUser(ctx);
+
     // Idempotent: on a retried sync the same attachment may be uploaded
     // again. Keep the original row, and delete the redundant new blob so
     // it doesn't orphan in storage.
