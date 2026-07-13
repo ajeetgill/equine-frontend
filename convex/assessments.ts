@@ -1,4 +1,5 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, MutationCtx } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 
 // Type definitions for parsed JSON data
@@ -46,6 +47,49 @@ interface SectionData {
   subsections: SubsectionData[];
 }
 
+// Delete an assessment's child rows (horses, sections, subsections,
+// requirements) ahead of a re-sync. Media attachments and storage blobs are
+// intentionally left alone: their externalIds/parentIds are stable across
+// syncs, so already-uploaded files stay linked.
+async function deleteChildRows(
+  ctx: MutationCtx,
+  assessmentId: Id<"assessments">
+): Promise<void> {
+  const sections = await ctx.db
+    .query("sections")
+    .withIndex("by_assessment", (q) => q.eq("assessmentId", assessmentId))
+    .collect();
+
+  for (const section of sections) {
+    const subsections = await ctx.db
+      .query("subsections")
+      .withIndex("by_section", (q) => q.eq("sectionId", section._id))
+      .collect();
+
+    for (const subsection of subsections) {
+      const requirements = await ctx.db
+        .query("requirements")
+        .withIndex("by_subsection", (q) => q.eq("subsectionId", subsection._id))
+        .collect();
+
+      for (const req of requirements) {
+        await ctx.db.delete(req._id);
+      }
+      await ctx.db.delete(subsection._id);
+    }
+    await ctx.db.delete(section._id);
+  }
+
+  const horses = await ctx.db
+    .query("horses")
+    .withIndex("by_assessment", (q) => q.eq("assessmentId", assessmentId))
+    .collect();
+
+  for (const horse of horses) {
+    await ctx.db.delete(horse._id);
+  }
+}
+
 // Sync a complete assessment from iOS
 // Uses JSON strings for iOS Swift SDK compatibility
 export const syncAssessment = mutation({
@@ -60,26 +104,38 @@ export const syncAssessment = mutation({
     const horses: HorseData[] = JSON.parse(args.horsesJson);
     const sections: SectionData[] = JSON.parse(args.sectionsJson);
 
-    // Check if assessment already exists
+    // Upsert: if this assessment was synced before (e.g. a retry after a
+    // failed photo upload), wipe its child rows and re-insert them so the
+    // sync is idempotent. Media attachments are kept — they are keyed by
+    // stable externalIds/parentIds and deduped in files.saveFile.
     const existing = await ctx.db
       .query("assessments")
       .withIndex("by_external_id", (q) => q.eq("externalId", assessment.externalId))
       .first();
 
+    let assessmentId;
     if (existing) {
-      throw new Error("Assessment already synced. Duplicate uploads not allowed.");
+      await deleteChildRows(ctx, existing._id);
+      await ctx.db.patch(existing._id, {
+        vetName: assessment.vetName,
+        farmName: assessment.farmName,
+        visitDate: assessment.visitDate,
+        isComplete: assessment.isComplete,
+        sideNotes: assessment.sideNotes || "",
+        syncedAt: Date.now(),
+      });
+      assessmentId = existing._id;
+    } else {
+      assessmentId = await ctx.db.insert("assessments", {
+        externalId: assessment.externalId,
+        vetName: assessment.vetName,
+        farmName: assessment.farmName,
+        visitDate: assessment.visitDate,
+        isComplete: assessment.isComplete,
+        sideNotes: assessment.sideNotes || "",
+        syncedAt: Date.now(),
+      });
     }
-
-    // Create assessment
-    const assessmentId = await ctx.db.insert("assessments", {
-      externalId: assessment.externalId,
-      vetName: assessment.vetName,
-      farmName: assessment.farmName,
-      visitDate: assessment.visitDate,
-      isComplete: assessment.isComplete,
-      sideNotes: assessment.sideNotes || "",
-      syncedAt: Date.now(),
-    });
 
     // Create horses
     for (const horse of horses) {

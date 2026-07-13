@@ -20,6 +20,21 @@ export const saveFile = mutation({
     creationDate: v.number(),
   },
   handler: async (ctx, args) => {
+    // Idempotent: on a retried sync the same attachment may be uploaded
+    // again. Keep the original row, and delete the redundant new blob so
+    // it doesn't orphan in storage.
+    const existing = await ctx.db
+      .query("mediaAttachments")
+      .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId))
+      .first();
+
+    if (existing) {
+      if (existing.storageId !== args.storageId) {
+        await ctx.storage.delete(args.storageId);
+      }
+      return existing._id;
+    }
+
     return await ctx.db.insert("mediaAttachments", args);
   },
 });

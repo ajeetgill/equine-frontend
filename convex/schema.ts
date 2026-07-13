@@ -65,5 +65,6 @@ export default defineSchema({
     mediaType: v.string(), // "image" | "video"
     creationDate: v.number(),
   }).index("by_parent", ["parentType", "parentId"])
-    .index("by_parent_id", ["parentId"]),
+    .index("by_parent_id", ["parentId"])
+    .index("by_external_id", ["externalId"]),
 });
