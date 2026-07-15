@@ -15,6 +15,12 @@ import { generateHorseDoc } from "@/actions/docGeneration";
 
 const CONVEX_TIMEOUT_MS = 10000;
 
+// Strip characters that are illegal in file/zip paths so a horse or farm name
+// can't break the folder structure or overwrite a sibling entry.
+function sanitizeName(name: string): string {
+  return name.replace(/[/\\:*?"<>|\x00-\x1f]/g, "_").trim();
+}
+
 export default function ProtectedPage() {
   const { user } = useUser();
   const convex = useConvex();
@@ -125,35 +131,67 @@ export default function ProtectedPage() {
       const horseTableBlob = await generateHorseDoc(details.horses);
       zip.file("horse-table.docx", horseTableBlob);
 
-      // 3. Add horse media folders
-      for (const horse of media.horseMedia) {
-        const folder = zip.folder(horse.horseName);
-        if (!folder) continue;
+      // A single failed media fetch shouldn't abort the whole export: collect
+      // failures and still produce the zip with the report + everything that
+      // did download. Never rejects.
+      const failedFiles: string[] = [];
+      const addRemoteFile = async (
+        folder: JSZip,
+        name: string,
+        url: string
+      ) => {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          folder.file(name, await response.blob());
+        } catch (err) {
+          console.error(`Failed to fetch media "${name}":`, err);
+          failedFiles.push(name);
+        }
+      };
 
-        const downloads = horse.files.map(async (file) => {
-          const response = await fetch(file.url);
-          const blob = await response.blob();
-          folder.file(file.name, blob);
-        });
-        await Promise.all(downloads);
+      // 3. Add horse media folders. Sanitize and de-duplicate folder names so
+      // same-named (or unnamed) horses don't overwrite each other's photos.
+      const usedFolderNames = new Set<string>();
+      for (const horse of media.horseMedia) {
+        const base = sanitizeName(horse.horseName) || "unnamed-horse";
+        let folderName = base;
+        for (let n = 2; usedFolderNames.has(folderName); n++) {
+          folderName = `${base}-${n}`;
+        }
+        usedFolderNames.add(folderName);
+
+        const folder = zip.folder(folderName);
+        if (!folder) continue;
+        await Promise.all(
+          horse.files.map((file) => addRemoteFile(folder, file.name, file.url))
+        );
       }
 
       // 4. Add requirement media folder
       if (media.requirementMedia.length > 0) {
         const reqFolder = zip.folder("requirement-media");
         if (reqFolder) {
-          const downloads = media.requirementMedia.map(async (file) => {
-            const response = await fetch(file.url);
-            const blob = await response.blob();
-            reqFolder.file(file.name, blob);
-          });
-          await Promise.all(downloads);
+          await Promise.all(
+            media.requirementMedia.map((file) =>
+              addRemoteFile(reqFolder, file.name, file.url)
+            )
+          );
         }
       }
 
       // 5. Generate and download zip
       const zipBlob = await zip.generateAsync({ type: "blob" });
-      saveAs(zipBlob, `${farmName}-assessment.zip`);
+      saveAs(
+        zipBlob,
+        `${sanitizeName(farmName) || "assessment"}-assessment.zip`
+      );
+
+      if (failedFiles.length > 0) {
+        alert(
+          `Download complete, but ${failedFiles.length} media file(s) could not be retrieved and were skipped:\n${failedFiles.join("\n")}`
+        );
+      }
     } catch (error) {
       alert(
         `Download failed: ${error instanceof Error ? error.message : "Unknown error"}`

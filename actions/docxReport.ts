@@ -558,7 +558,7 @@ function generateDocument(reportData: any) {
       spacing: { after: 100 },
     })
   );
-  if (data.metadata.averageDonkeyBCS) {
+  if (data.metadata.averageHorseBCS) {
     paragraphs.push(
       new Paragraph({
         children: [
